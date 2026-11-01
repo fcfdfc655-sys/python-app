@@ -1,5 +1,6 @@
 [app]
 title = Kali Guard Pro
+version = 1.0.0
 package.name = kaliguard
 package.domain = org.kali.guard
 
