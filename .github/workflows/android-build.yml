@@ -20,18 +20,16 @@ jobs:
     - name: Install Buildozer and Cython
       run: |
         pip3 install buildozer cython requests
-        # إضافة مسار bin إلى الـ PATH لضمان عمل buildozer
         echo "$HOME/.local/bin" >> ~/.bashrc
 
-    - name: Accept Android SDK Licenses
+    - name: Fix SDK Licenses
       run: |
-        # هذه الخطوة هي الحل لمشكلة الـ aidl والرخص
+        # هذا الأمر هو الذي يحل مشكلة الـ aidl والرخص في سيرفرات GitHub
         yes | sdkmanager --licenses || true
 
     - name: Build with Buildozer
       run: |
         export PATH=$PATH:$HOME/.local/bin
-        # بناء التطبيق بصيغة debug
         buildozer -v android debug
 
     - name: Upload APK
