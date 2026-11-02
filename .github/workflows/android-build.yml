@@ -1,0 +1,37 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main" ] # سيبدأ البناء تلقائياً عند عمل Push لفرع main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install System Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 gettext libffi-dev libssl-dev
+
+    - name: Install Buildozer and Cython
+      run: |
+        pip3 install --user buildozer cython
+        echo 'export PATH=$PATH:.local/bin' >> ~/.bashrc
+        source ~/.bashrc
+
+    - name: Build with Buildozer
+      run: |
+        export PATH=$PATH:.local/bin
+        buildozer init # سيقوم بإنشاء ملف spec إذا لم يكن موجوداً
+        # ملاحظة: إذا كان لديك ملف buildozer.spec جاهز، سيقوم بتجاوز هذه الخطوة
+        buildozer -v android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: APK-File
+        path: bin/*.apk
