@@ -27,10 +27,6 @@ android.api = 33
 android.minapi = 23
 android.ndk = 25b
 android.archs = arm64-v8a
-android.api = 33
-android.minapi = 23
-android.ndk = 25b
-android.archs = arm64-v8a
 
 # (list) Application services to use
 services =
