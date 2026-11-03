@@ -1,5 +1,6 @@
 [app]
 p4a.branch = master
+p4a.branch = master
 # (str) Title of your application
 title = Virus Scanner Pro
 
@@ -23,6 +24,10 @@ android.permissions = READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, INTERNET
 
 # (str) Orientation of the application
 orientation = portrait
+android.api = 33
+android.minapi = 23
+android.ndk = 25b
+android.archs = arm64-v8a
 android.api = 33
 android.minapi = 23
 android.ndk = 25b
