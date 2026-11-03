@@ -1,6 +1,5 @@
 [app]
 p4a.branch = master
-p4a.branch = master
 # (str) Title of your application
 title = Virus Scanner Pro
 
