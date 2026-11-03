@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -22,22 +23,23 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            git zip unzip \
-            python3-pip python3-venv \
-            build-essential \
-            autoconf libtool pkg-config \
-            zlib1g-dev libncurses5-dev \
-            libffi-dev libssl-dev
-      - name: Build APK
+          sudo apt-get install -y git zip unzip python3-pip python3-venv build-essential autoconf libtool pkg-config zlib1g-dev libncurses5-dev libffi-dev libssl-dev
+
+      - name: Install Buildozer
         run: |
           python3 -m venv .venv
-          . .venv/bin/activate
+          source .venv/bin/activate
           pip install --upgrade pip setuptools wheel
           pip install buildozer cython==0.29.36
-          buildozer android debug
+
+      - name: Build APK
+        run: |
+          source .venv/bin/activate
+          yes | buildozer -v android debug
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Android-APK
           path: bin/*.apk
+          if-no-files-found: error
