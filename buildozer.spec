@@ -38,3 +38,4 @@ services =
 
 # (list) Application recipes to use
 recipe.android =
+android.accept_sdk_license = True
