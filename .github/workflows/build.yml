@@ -20,11 +20,11 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git zip unzip python3.12 python3.12-venv python3.12-dev build-essential autoconf automake libtool libtool-bin libltdl-dev pkg-config zlib1g-dev libncurses5-dev libffi-dev libssl-dev gettext autopoint autoconf-archive
+          sudo apt-get install -y git zip unzip python3-pip python3-venv build-essential autoconf automake libtool libtool-bin libltdl-dev pkg-config zlib1g-dev libncurses5-dev libffi-dev libssl-dev gettext autopoint autoconf-archive
 
       - name: Install Buildozer
         run: |
-          python3.12 -m venv .venv
+          python3 -m venv .venv
           source .venv/bin/activate
           pip install --upgrade pip setuptools wheel
           pip install buildozer cython==0.29.36
