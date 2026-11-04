@@ -16,7 +16,7 @@ source.dir = .
 version = 1.0
 
 # (list) Application requirements
-requirements = python3,kivy,requests
+requirements = python3==3.12.9,hostpython3==3.12.9,kivy,requests
 
 # (list) Permissions requested from the android manifest
 android.permissions = READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, INTERNET
